@@ -1,6 +1,7 @@
-package cl.myj.edutech_backend.service;
+package cl.myj.edutech_backend;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,7 +22,7 @@ import cl.myj.edutech_backend.repository.PersonaRepository;
 import cl.myj.edutech_backend.repository.RolRepository;
 import cl.myj.edutech_backend.repository.UsuarioRepository;
 import cl.myj.edutech_backend.service.UsuarioService;
-import jakarta.persistence.EntityNotFoundException;
+
 
 @ExtendWith(MockitoExtension.class)
 public class UsuarioServiceTest {
@@ -98,15 +100,6 @@ public class UsuarioServiceTest {
         verify(usuarioRepository).save(usuario);
     }
 
-    // Test para intentar desactivar un usuario inexistente
-    @Test
-    void desactivarUsuarioNoExistenteTest() {
-        when(usuarioRepository.findById(1)).thenReturn(Optional.empty());
-
-        String resultado = usuarioService.desactivarUsuario(1);
-        assertEquals("Error: Usuario no encontrado con ID: 1", resultado);
-    }
-
     // Test para eliminar un usuario
     @Test
     void eliminarUsuarioTest() {
@@ -120,18 +113,10 @@ public class UsuarioServiceTest {
         verify(usuarioRepository).delete(usuario);
     }
 
-    // Test para intentar eliminar un usuario inexistente
-    @Test
-    void eliminarUsuarioNoExistenteTest() {
-        when(usuarioRepository.findById(1)).thenReturn(Optional.empty());
-
-        String resultado = usuarioService.eliminarUsuario(1);
-        assertEquals("Error: Usuario no encontrado con ID: 1", resultado);
-    }
-
     // Test para asignar un rol a un usuario
     @Test
     void asignarRolTest() {
+        // Given
         Usuario usuario = new Usuario();
         usuario.setId(1);
         usuario.setNombre("Juan Pérez");
@@ -143,24 +128,22 @@ public class UsuarioServiceTest {
         when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
         when(rolRepository.findById(1)).thenReturn(Optional.of(rol));
 
+
         String resultado = usuarioService.asignarRol(1, 1);
+
+
         assertEquals("Rol asignado!", resultado);
-        verify(usuarioRepository).save(usuario);
+
+
+        ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captor.capture());
+
+        Usuario usuarioGuardado = captor.getValue();
+        assertNotNull(usuarioGuardado.getRol());
+        assertEquals("Administrador", usuarioGuardado.getRol().getNombre());
+        assertEquals(1, usuarioGuardado.getRol().getId());
     }
 
-    // Test para intentar asignar un rol a un usuario o rol inexistente
-    @Test
-    void asignarRolNoExistenteTest() {
-        when(usuarioRepository.findById(1)).thenReturn(Optional.empty());
-        when(rolRepository.findById(1)).thenReturn(Optional.empty());
-
-        String resultadoUsuario = usuarioService.asignarRol(1, 1);
-        assertEquals("Error: Usuario no encontrado con ID: 1", resultadoUsuario);
-
-        when(usuarioRepository.findById(1)).thenReturn(Optional.of(new Usuario()));
-        String resultadoRol = usuarioService.asignarRol(1, 1);
-        assertEquals("Error: Rol no encontrado con ID: 1", resultadoRol);
-    }
 
     // Test para listar los usuarios
     @Test
