@@ -86,6 +86,7 @@ public class UsuarioService {
                 Usuario usuario = usuarioRepository.findById(idUsuario).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + idUsuario));
                 Rol rol = rolRepository.findById(idRol).orElseThrow(() -> new EntityNotFoundException("Rol no encontrado con ID: " + idRol));
                 usuario.setRol(rol);
+                usuarioRepository.save(usuario);
                 return "Rol asignado!";        
             } catch (RuntimeException e){
                 return "Error: " + e.getMessage();
